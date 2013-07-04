@@ -1,15 +1,14 @@
 var express = require('express');
 var fs = require('fs');
 
-
-var contents = fs.readFile( 'index.html');
-console.log('Contents of index.html:' + contents);
-
+// Get contents of index.html
+var contents = fs.readFileSync('index.html');
+console.log('Contents of index.html:' + contents.toString('utf-8'));
 
 var app = express.createServer(express.logger());
 
 app.get('/', function(request, response) {
-  response.send('Hello World 2!');
+  response.send(contents);
 });
 
 var port = process.env.PORT || 5000;
