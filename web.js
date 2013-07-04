@@ -1,4 +1,10 @@
 var express = require('express');
+var fs = require('fs');
+
+
+var contents = fs.readFile( 'index.html');
+console.log('Contents of index.html:' + contents);
+
 
 var app = express.createServer(express.logger());
 
