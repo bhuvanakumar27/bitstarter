@@ -8,7 +8,7 @@ console.log('Contents of index.html:' + contents.toString('utf-8'));
 var app = express.createServer(express.logger());
 
 app.get('/', function(request, response) {
-  response.send(contents);
+  response.send(contents.toString('utf-8'));
 });
 
 var port = process.env.PORT || 5000;
