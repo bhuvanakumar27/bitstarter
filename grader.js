@@ -22,6 +22,7 @@ References:
 */
 
 var fs = require('fs');
+var rest = require('restler');
 var program = require('commander');
 var cheerio = require('cheerio');
 var HTMLFILE_DEFAULT = "index.html";
@@ -55,25 +56,51 @@ var checkHtmlFile = function(htmlfile, checksfile) {
     }
     return out;
 };
+var checkHtml = function(html, checksfile) {
+    $ = cheerio.load(html);
+    var checks = loadChecks(checksfile).sort();
+    var out = {};
+    for(var ii in checks) {
+        var present = $(checks[ii]).length > 0;
+        out[checks[ii]] = present;
+    }
+    return out;
+};
 
-var checkURL = function(inurl) {
+var assertURL = function(inurl) {
     var url = inurl.toString();
     // could check that the given url is a valid url...
     return url;
 };
 
+var testResponse = function(result, response) {
+    if (result instanceof Error) {
+        console.error('Error: ' + util.format(response.message));
+    } else {
+        //console.log("Response: %s", result);
+        var checkJson = checkHtml(result, program.checks);
+        var outJson = JSON.stringify(checkJson, null, 4);
+        console.log(outJson);
+    }
+};
+
+
 if(require.main == module) {
-    //var url = "test";
     program
         .option('-c, --checks ', 'Path to checks.json', assertFileExists, CHECKSFILE_DEFAULT)
         .option('-f, --file ', 'Path to index.html', assertFileExists, HTMLFILE_DEFAULT)
-        .option('-u, --url ', 'URL', checkURL, URL_DEFAULT)
+        .option('-u, --url ', 'URL', assertURL, URL_DEFAULT)
         .parse(process.argv);
-    if(program.url) {console.log("URL %s", program.url.toString());}
-    if(program.file) {console.log("File %s", program.file.toString());}
-    var checkJson = checkHtmlFile(program.file, program.checks);
-    var outJson = JSON.stringify(checkJson, null, 4);
-    console.log(outJson);
+    if(program.url) {
+        //console.log("URL %s", program.url.toString());
+        rest.get(program.url.toString()).on('complete', testResponse);
+    }
+    if(program.file) {
+        console.log("File %s", program.file.toString());
+        var checkJson = checkHtmlFile(program.file, program.checks);
+        var outJson = JSON.stringify(checkJson, null, 4);
+        console.log(outJson);
+    }
 } else {
     exports.checkHtmlFile = checkHtmlFile;
 }
